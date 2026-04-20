@@ -30,7 +30,7 @@ jobs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids i-073c8b4928cac6681 \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["hostname","date","touch /tmp/github-actions-success.txt","ls -l /tmp/github-actions-success.txt"]' \
+            --parameters 'commands=["hostname","date","touch /tmp/github-actions-success4.txt","ls -l /tmp/github-actions-success4.txt"]' \
             --comment "GitHub Actions SSM test" \
             --query "Command.CommandId" \
             --output text)
