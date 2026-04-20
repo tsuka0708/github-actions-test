@@ -13,13 +13,36 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: ap-northeast-1
           role-to-assume: arn:aws:iam::717472005773:role/github-actions-test-role
 
       - name: Test AWS Login
         run: aws sts get-caller-identity
+
+      - name: Send SSM Command
+        id: send
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
+            --instance-ids i-073c8b4928cac6681 \
+            --document-name "AWS-RunShellScript" \
+            --parameters 'commands=["hostname","date","touch /tmp/github-actions-success.txt","ls -l /tmp/github-actions-success.txt"]' \
+            --comment "GitHub Actions SSM test" \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
+          echo "Command ID: $COMMAND_ID"
+
+      - name: Wait a bit
+        run: sleep 3
+
+      - name: Check SSM Result
+        run: |
+          aws ssm get-command-invocation \
+            --command-id "${{ steps.send.outputs.command_id }}" \
+            --instance-id i-073c8b4928cac6681
